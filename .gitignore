@@ -34,4 +34,4 @@ Include
 
 # virtualenv folders #
 ######################
-myvenv
+server/myvenv
