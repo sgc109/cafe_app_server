@@ -13,10 +13,13 @@ def add_user(request):
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
+        profile = Profile(user=new_user, name='test_name', profile_image='test_image', comment='test_comment')
+        profile.save()
     except IntegrityError as e:
-        return HttpResponse(e.__cause__)
+        return JsonResponse({}, status=400)
+        #return HttpResponse(e.__cause__)
 
-    return HttpResponse('sign up success!')
+    return JsonResponse({}, status=200)
 
 def remove_user(request):
     id = request.GET.get('id', '')
@@ -25,27 +28,25 @@ def remove_user(request):
     cnt = query_set.count()
     if cnt > 0:
         if cnt > 1:
-            return HttpResponse('multiple accounts!')
+            return JsonResponse({}, status=400)
         query_set.delete()
-        return HttpResponse('remove success!')
+        return JsonResponse({}, status=200)
     else:
-        return HttpResponse('invalid id or password!')
+        return JsonResponse({}, status=400)
 
 def login(request):
     id = request.GET.get('id', '')
     pw = request.GET.get('pw', '')
     if User.objects.all().filter(username=id, password=pw).count() == 0:
-        return HttpResponse('invalid id or password!')
+        return JsonResponse({}, status=400)
 
     query_set = User.objects.all().filter(username=id)
     cnt = query_set.count()
     if cnt > 0:
         if cnt > 1:
-            return HttpResponse('multiple accounts!')
+            return JsonResponse({}, status=400)
         user = query_set[0]
         profile = Profile.objects.all().filter(user=user)[0]
         profile_serializer = ProfileSerializer(profile, context={'request': request})
-        return JsonResponse(profile_serializer.data)
-        #data = serializers.serialize('json', Profile.objects.all().filter(user=user), fields=('name', 'profile_image', 'comment'))
-        #return HttpResponse('login success!')
-    return HttpResponse('invalid user')
+        return JsonResponse(profile_serializer.data, status=200)
+    return JsonResponse({}, status=400)
