@@ -1,5 +1,2 @@
-myvenv/*
-myvenv/lib/*
-myvenv/lib/python3.5/*
-myvenv/lib/python3.5/site-packages/*
+myvenv
 
