@@ -36,12 +36,13 @@ def login(request):
     pw = request.GET.get('pw', '')
     if User.objects.all().filter(username=id, password=pw).count() == 0:
         return HttpResponse('invalid id or password!')
-    query_set = Profile.objects.all().filter(id=id)
+
+    query_set = User.objects.all().filter(id=id)
     cnt = query_set.count()
     if cnt > 0:
         if cnt > 1:
             return HttpResponse('multiple accounts!')
-        profile = query_set[0]
+        profile = Profile.objects.all().filter(user=query_set[0])[0]
         serializer = ProfileSerializer(profile)
         return HttpResponse('login success!')
     else:
