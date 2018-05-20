@@ -3,9 +3,9 @@ from django.http import HttpResponse
 from django.contrib.auth.models import *
 from django.db import IntegrityError
 from .models import Profile
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from .serializer import ProfileSerializer
+from django.core import serializers
+from django.http import JsonResponse
 
 def add_user(request):
     id = request.GET.get('id', '')
@@ -37,13 +37,15 @@ def login(request):
     if User.objects.all().filter(username=id, password=pw).count() == 0:
         return HttpResponse('invalid id or password!')
 
-    query_set = User.objects.all().filter(id=id)
+    query_set = User.objects.all().filter(username=id)
     cnt = query_set.count()
     if cnt > 0:
         if cnt > 1:
             return HttpResponse('multiple accounts!')
-        profile = Profile.objects.all().filter(user=query_set[0])[0]
-        serializer = ProfileSerializer(profile)
-        return HttpResponse('login success!')
-    else:
-        return HttpResponse('invalid user')
+        user = query_set[0]
+        profile = Profile.objects.all().filter(user=user)[0]
+        profile_serializer = ProfileSerializer(profile, context={'request': request})
+        return JsonResponse(profile_serializer.data)
+        #data = serializers.serialize('json', Profile.objects.all().filter(user=user), fields=('name', 'profile_image', 'comment'))
+        #return HttpResponse('login success!')
+    return HttpResponse('invalid user')
