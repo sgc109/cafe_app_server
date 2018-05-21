@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^add_user/', account_app.views.add_user, name = 'add_user'),
     url(r'^remove_user/', account_app.views.remove_user, name = 'remove_user'),
     url(r'^login/', account_app.views.login, name = 'login'),
+    url(r'^change_profile_image/', account_app.views.change_profile_image, name = 'change_profile_image'),
     url(r'^upload_post/', blog.views.upload_post, name = 'upload_post'),
     url(r'^delete_post/', blog.views.delete_post, name = 'delete_post'),
 ]

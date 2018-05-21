@@ -50,3 +50,19 @@ def login(request):
         profile_serializer = ProfileSerializer(profile, context={'request': request})
         return JsonResponse(profile_serializer.data, status=200)
     return JsonResponse({}, status=400)
+
+def change_profile_image(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    query_set = User.objects.all().filter(username=id, password=pw)
+    cnt = query_set.count()
+    if cnt > 0:
+        if cnt > 1:
+            return JsonResponse({}, status=400)
+        user = query_set[0]
+        profile = Profile.objects.all().filter(user=user)[0]
+        profile.profile_image = request.FILES['file']
+        profile.save()
+        return JsonResponse({}, status=200)
+    else:
+        return JsonResponse({}, status=400)
