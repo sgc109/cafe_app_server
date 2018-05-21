@@ -6,6 +6,7 @@ from .models import Profile
 from .serializer import ProfileSerializer
 from django.core import serializers
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 def add_user(request):
     id = request.GET.get('id', '')
@@ -51,6 +52,7 @@ def login(request):
         return JsonResponse(profile_serializer.data, status=200)
     return JsonResponse({}, status=400)
 
+@csrf_exempt
 def change_profile_image(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
