@@ -3,14 +3,11 @@ from django.utils import timezone
 from account_app.models import Profile
 import os
 
-def get_image_path(instance, filename):
-    return os.path.join('photos', str(instance.user.username), filename)
-
 class Post(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True, null=True)
+    photo = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True, null=True)
     title = models.CharField(max_length=200)
-    text = models.TextField()
+    text = models.TextField(max_length=500)
     created_date = models.DateTimeField(default=timezone.now)
     published_date = models.DateTimeField(blank=True, null=True)
 
