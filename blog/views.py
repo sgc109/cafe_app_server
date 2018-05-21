@@ -6,7 +6,7 @@ from .models import *
 def upload_post(request):
     if request.method == 'GET':
         return JsonResponse({}, status=400)
-        
+
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
     user_query_set = User.objects.all().filter(username=id, password=pw)

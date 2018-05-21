@@ -17,6 +17,8 @@ from django.conf.urls import url, include
 from django.contrib import admin
 import account_app.views
 import blog.views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -26,3 +28,5 @@ urlpatterns = [
     url(r'^upload_post/', blog.views.upload_post, name = 'upload_post'),
     url(r'^delete_post/', blog.views.delete_post, name = 'delete_post'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

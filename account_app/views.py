@@ -13,7 +13,7 @@ def add_user(request):
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
-        profile = Profile(user=new_user, name='test_name', profile_image='test_image', comment='test_comment')
+        profile = Profile(user=new_user, name='test_name', profile_image='', comment='')
         profile.save()
     except IntegrityError as e:
         return JsonResponse({}, status=400)
