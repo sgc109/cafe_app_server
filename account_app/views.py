@@ -60,10 +60,10 @@ def login(request):
             profile = Profile.objects.all().filter(user=user)[0]
             profile_serializer = ProfileSerializer(profile, context={'request': request})
             return JsonResponse(profile_serializer.data, status=200)
+        else:
+            return error_response()
     except:
         return error_response()
-
-    return error_response()
 
 @csrf_exempt
 def change_profile_image(request):
@@ -77,7 +77,7 @@ def change_profile_image(request):
                 return error_response()
             user = query_set[0]
             profile = Profile.objects.all().filter(user=user)[0]
-            profile.profile_image = request.FILES['file']
+            profile.profile_image = request.FILES['photo']
             profile.save()
             return success_response()
         else:
