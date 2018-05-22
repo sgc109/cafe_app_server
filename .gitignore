@@ -37,7 +37,6 @@ Include
 
 # virtualenv folders #
 ######################
-server/myvenv/*
 
 
 # Android files
