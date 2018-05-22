@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from .models import *
+from .serializer import *
 from django.views.decorators.csrf import csrf_exempt
 
 def error_response():
@@ -20,7 +21,7 @@ def upload_post(request):
         user = User.objects.all().filter(username=id, password=pw)[0]
         post = Post(user=user, image=request.FILES['image'], title=title, text=text)
         post.save()
-        return success_response() # 포스트 목록 보내주는코드로 변경?
+        return success_response()
     except:
         return error_response()
 
@@ -28,7 +29,7 @@ def upload_post(request):
 def delete_post(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
-    post_id = request.POST.get('post_id', '')
+    post_id = request.POST.get('post_id', 0)
     try:
         user = User.objects.all().filter(username=id, password=pw)[0]
         post = Post.objects.all().filter(id=post_id, user=user)
@@ -36,3 +37,14 @@ def delete_post(request):
         return success_response()
     except:
         return error_response()
+
+@csrf_exempt
+def get_posts(request):
+    last_post_id = request.POST.get('last_post_id', -1)
+    cnt_post = request.POST.get('cnt_post', 10)
+    post_query_set = Post.objects.all().order_by('-created_date')
+    if last_post_id != -1:
+        post_query_set = post_query_set.filter(id__gt=last_post_id)
+    posts = post_query_set[:cnt_post]
+    serializer = PostSerializer(posts, many=True)
+    return JsonResponse(serializer.data, status=200, safe=False)

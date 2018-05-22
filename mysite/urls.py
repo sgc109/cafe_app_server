@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^change_profile_image/', account_app.views.change_profile_image, name = 'change_profile_image'),
     url(r'^upload_post/', blog.views.upload_post, name = 'upload_post'),
     url(r'^delete_post/', blog.views.delete_post, name = 'delete_post'),
+    url(r'^get_posts/', blog.views.get_posts, name = 'get_posts'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

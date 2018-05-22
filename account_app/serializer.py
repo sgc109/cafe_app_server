@@ -8,9 +8,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ('name', 'profile_image', 'comment')
-'''
-    def get_photo_url(self, car):
-        request = self.context.get('request')
-        photo_url = car.photo.url
-        return request.build_absolute_uri(photo_url)
-'''
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'password')
