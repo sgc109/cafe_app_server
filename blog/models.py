@@ -5,7 +5,7 @@ import os
 
 class Post(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    photo = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True, null=True)
+    image = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True, null=True)
     title = models.CharField(max_length=200)
     text = models.TextField(max_length=500)
     created_date = models.DateTimeField(default=timezone.now)
