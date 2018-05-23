@@ -74,7 +74,7 @@ def change_profile_image(request):
     try:
         if cnt > 0:
             if cnt > 1:
-                return error_response()
+                return JsonResponse({}, status=401)
             user = query_set[0]
             profile = Profile.objects.all().filter(user=user)[0]
             profile.profile_image = request.FILES['photo']
@@ -82,6 +82,6 @@ def change_profile_image(request):
             serializer = ProfileImageSerializer(profile)
             return JsonResponse(serializer.data, status=200)
         else:
-            return error_response()
-    except:
-        return JsonResponse({}, status=401)
+            return JsonResponse({}, status=402)
+    except Exception as e:
+        return HttpResponse(str(e))
