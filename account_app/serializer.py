@@ -18,3 +18,13 @@ class ProfileImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ('profile_image', )
+
+class ProfileNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('name', )
+
+class ProfileCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('comment', )

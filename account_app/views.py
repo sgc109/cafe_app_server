@@ -20,7 +20,7 @@ def add_user(request):
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
-        profile = Profile(user=new_user, name='test_name', profile_image='', comment='')
+        profile = Profile(user=new_user, name='', profile_image='', comment='')
         profile.save()
     except IntegrityError as e:
         return error_response()
@@ -80,6 +80,48 @@ def change_profile_image(request):
             profile.profile_image = request.FILES['photo']
             profile.save()
             serializer = ProfileImageSerializer(profile)
+            return JsonResponse(serializer.data, status=200)
+        else:
+            return error_response()
+    except Exception as e:
+        return error_response()
+
+@csrf_exempt
+def change_profile_name(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    query_set = User.objects.all().filter(username=id, password=pw)
+    cnt = query_set.count()
+    try:
+        if cnt > 0:
+            if cnt > 1:
+                error_response()
+            user = query_set[0]
+            profile = Profile.objects.all().filter(user=user)[0]
+            profile.name = request.POST.get('name', '')
+            profile.save()
+            serializer = ProfileNameSerializer(profile)
+            return JsonResponse(serializer.data, status=200)
+        else:
+            return error_response()
+    except Exception as e:
+        return error_response()
+
+@csrf_exempt
+def change_profile_comment(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    query_set = User.objects.all().filter(username=id, password=pw)
+    cnt = query_set.count()
+    try:
+        if cnt > 0:
+            if cnt > 1:
+                error_response()
+            user = query_set[0]
+            profile = Profile.objects.all().filter(user=user)[0]
+            profile.comment = request.POST.get('comment', '')
+            profile.save()
+            serializer = ProfileCommentSerializer(profile)
             return JsonResponse(serializer.data, status=200)
         else:
             return error_response()
