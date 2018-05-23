@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import *
 from django.db import IntegrityError
 from .models import Profile
-from .serializer import ProfileSerializer
+from .serializer import *
 from django.core import serializers
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -58,7 +58,7 @@ def login(request):
                 return error_response()
             user = query_set[0]
             profile = Profile.objects.all().filter(user=user)[0]
-            profile_serializer = ProfileSerializer(profile, context={'request': request})
+            profile_serializer = ProfileSerializer(profile)
             return JsonResponse(profile_serializer.data, status=200)
         else:
             return error_response()
@@ -79,7 +79,8 @@ def change_profile_image(request):
             profile = Profile.objects.all().filter(user=user)[0]
             profile.profile_image = request.FILES['photo']
             profile.save()
-            return success_response()
+            serializer = ProfileImageSerializer(profile)
+            return JsonResponse(serializer.data, status=200)
         else:
             return error_response()
     except:
