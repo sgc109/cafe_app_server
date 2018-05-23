@@ -84,4 +84,4 @@ def change_profile_image(request):
         else:
             return error_response()
     except:
-        return error_response()
+        return JsonResponse({}, status=401)
