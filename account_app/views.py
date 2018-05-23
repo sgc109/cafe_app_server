@@ -77,6 +77,9 @@ def change_profile_image(request):
                 error_response()
             user = query_set[0]
             profile = Profile.objects.all().filter(user=user)[0]
+            prv_photo = profile.profile_image
+            if prv_photo:
+                prv_photo.delete()
             profile.profile_image = request.FILES['photo']
             profile.save()
             serializer = ProfileImageSerializer(profile)
