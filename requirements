@@ -1,0 +1,3 @@
+Pillow
+django==1.10
+djangorestframework
