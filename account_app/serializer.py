@@ -32,3 +32,13 @@ class ProfileImageSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         photo_url = profile.profile_image.url
         return request.build_absolute_uri(photo_url)
+
+class ProfileNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('name', )
+
+class ProfileCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('comment', )
