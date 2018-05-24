@@ -58,7 +58,7 @@ def login(request):
                 return error_response()
             user = query_set[0]
             profile = Profile.objects.all().filter(user=user)[0]
-            profile_serializer = ProfileSerializer(profile)
+            profile_serializer = ProfileSerializer(profile, context={'request': request})
             return JsonResponse(profile_serializer.data, status=200)
         else:
             return error_response()
@@ -71,17 +71,15 @@ def change_profile_image(request):
     pw = request.POST.get('pw', '')
     query_set = User.objects.all().filter(username=id, password=pw)
     cnt = query_set.count()
-    try:
-        if cnt > 0:
-            if cnt > 1:
-                error_response()
-            user = query_set[0]
-            profile = Profile.objects.all().filter(user=user)[0]
-            profile.profile_image = request.FILES['photo']
-            profile.save()
-            serializer = ProfileImageSerializer(profile)
-            return JsonResponse(serializer.data, status=200)
-        else:
-            return error_response()
-    except Exception as e:
+
+    if cnt > 0:
+        if cnt > 1:
+            error_response()
+        user = query_set[0]
+        profile = Profile.objects.all().filter(user=user)[0]
+        profile.profile_image = request.FILES['photo']
+        profile.save()
+        serializer = ProfileImageSerializer(profile, context={'request': request})
+        return JsonResponse(serializer.data, status=200)
+    else:
         return error_response()
