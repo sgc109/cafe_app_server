@@ -8,7 +8,6 @@ from rest_framework_jwt.views import *
 
 urlpatterns = [
     url(r'', admin.site.urls),
-    url(r'/', admin.site.urls),
     url(r'^admin/', admin.site.urls),
     url(r'^add_user/', account_app.views.add_user, name = 'add_user'),
     url(r'^remove_user/', account_app.views.remove_user, name = 'remove_user'),
