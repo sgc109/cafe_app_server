@@ -51,9 +51,9 @@ def get_posts(request):
             cnt_post = 10
         else:
             cnt_post = int(cnt_post)
-        post_query_set = Post.objects.all().order_by('-created_date')
+        post_query_set = Post.objects.all().order_by('-id')
         if last_post_id != -1:
-            post_query_set = post_query_set.filter(id__gt=last_post_id)
+            post_query_set = post_query_set.filter(id__lt=last_post_id)
         posts = post_query_set[:cnt_post]
         serializer = PostSerializer(posts, many=True, context={"request": request})
         return JsonResponse(serializer.data, status=200, safe=False)
