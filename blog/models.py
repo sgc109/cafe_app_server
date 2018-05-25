@@ -11,7 +11,7 @@ def get_file_path(instance, filename):
     return os.path.join(date.today().strftime('photos/%Y/%m/%d/'), filename)
 
 class Post(models.Model):
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_file_path, blank=True, null=True)
     title = models.CharField(max_length=200)
     text = models.TextField(max_length=500)

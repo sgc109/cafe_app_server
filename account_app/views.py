@@ -70,6 +70,7 @@ def login(request):
     except:
         return error_response()
 
+
 @csrf_exempt
 def change_profile_image(request):
     id = request.POST.get('id', '')

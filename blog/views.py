@@ -19,7 +19,8 @@ def upload_post(request):
     text = request.POST.get('text', '')
     try:
         user = User.objects.all().filter(username=id, password=pw)[0]
-        post = Post(user=user, image=request.FILES['image'], title=title, text=text)
+        profile = Profile.objects.all().filter(user=user)[0]
+        post = Post(profile=profile, image=request.FILES['image'], title=title, text=text)
         post.save()
         return success_response()
     except:
@@ -40,22 +41,20 @@ def delete_post(request):
 
 @csrf_exempt
 def get_posts(request):
-    try:
-        last_post_id = request.GET.get('last_post_id', -1)
-        if not last_post_id:
-            last_post_id = -1
-        else:
-            last_post_id = int(last_post_id)
-        cnt_post = request.GET.get('cnt_post', 10)
-        if not cnt_post:
-            cnt_post = 10
-        else:
-            cnt_post = int(cnt_post)
-        post_query_set = Post.objects.all().order_by('-id')
-        if last_post_id != -1:
-            post_query_set = post_query_set.filter(id__lt=last_post_id)
-        posts = post_query_set[:cnt_post]
-        serializer = PostSerializer(posts, many=True, context={"request": request})
-        return JsonResponse(serializer.data, status=200, safe=False)
-    except:
-        return error_response()
+
+    last_post_id = request.GET.get('last_post_id', -1)
+    if not last_post_id:
+        last_post_id = -1
+    else:
+        last_post_id = int(last_post_id)
+    cnt_post = request.GET.get('cnt_post', 10)
+    if not cnt_post:
+        cnt_post = 10
+    else:
+        cnt_post = int(cnt_post)
+    post_query_set = Post.objects.all().order_by('-id')
+    if last_post_id != -1:
+        post_query_set = post_query_set.filter(id__lt=last_post_id)
+    posts = post_query_set[:cnt_post]
+    serializer = PostSerializer(posts, many=True, context={"request": request})
+    return JsonResponse(serializer.data, status=200, safe=False)
