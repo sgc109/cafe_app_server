@@ -48,20 +48,20 @@ def login(request):
     id = request.GET.get('id', '')
     pw = request.GET.get('pw', '')
     if User.objects.all().filter(username=id, password=pw).count() == 0:
-        return error_response()
+        return JsonResponse({}, status=401)
 
     query_set = User.objects.all().filter(username=id)
     cnt = query_set.count()
     try:
         if cnt > 0:
             if cnt > 1:
-                return error_response()
+                return JsonResponse({}, status=402)
             user = query_set[0]
             profile = Profile.objects.all().filter(user=user)[0]
             profile_serializer = ProfileSerializer(profile, context={'request': request})
             return JsonResponse(profile_serializer.data, status=200)
         else:
-            return error_response()
+            return JsonResponse({}, status=403)
     except:
         return error_response()
 
