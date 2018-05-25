@@ -44,9 +44,13 @@ def get_posts(request):
         last_post_id = request.GET.get('last_post_id', -1)
         if not last_post_id:
             last_post_id = -1
+        else:
+            last_post_id = int(last_post_id)
         cnt_post = request.GET.get('cnt_post', 10)
         if not cnt_post:
             cnt_post = 10
+        else:
+            cnt_post = int(cnt_post)
         post_query_set = Post.objects.all().order_by('-created_date')
         if last_post_id != -1:
             post_query_set = post_query_set.filter(id__gt=last_post_id)
