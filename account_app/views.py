@@ -52,18 +52,17 @@ def login(request):
 
     query_set = User.objects.all().filter(username=id)
     cnt = query_set.count()
-    try:
-        if cnt > 0:
-            if cnt > 1:
-                return JsonResponse({}, status=402)
-            user = query_set[0]
-            profile = Profile.objects.all().filter(user=user)[0]
-            profile_serializer = ProfileSerializer(profile, context={'request': request})
-            return JsonResponse(profile_serializer.data, status=200)
-        else:
-            return JsonResponse({}, status=403)
-    except:
-        return error_response()
+
+    if cnt > 0:
+        if cnt > 1:
+            return JsonResponse({}, status=402)
+        user = query_set[0]
+        profile = Profile.objects.all().filter(user=user)[0]
+        profile_serializer = ProfileSerializer(profile, context={'request': request})
+        return JsonResponse(profile_serializer.data, status=200)
+    else:
+        return JsonResponse({}, status=403)
+    
 
 @csrf_exempt
 def change_profile_image(request):
