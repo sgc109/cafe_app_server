@@ -14,9 +14,12 @@ def error_response():
 def success_response():
     return JsonResponse({},status=200)
 
+@csrf_exempt
 def add_user(request):
-    id = request.GET.get('id', '')
-    pw = request.GET.get('pw', '')
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    if not id or not pw:
+        return error_response()
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
@@ -28,9 +31,10 @@ def add_user(request):
 
     return success_response()
 
+@csrf_exempt
 def remove_user(request):
-    id = request.GET.get('id', '')
-    pw = request.GET.get('pw', '')
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
     query_set = User.objects.all().filter(username=id, password=pw)
     cnt = query_set.count()
     try:
@@ -44,30 +48,33 @@ def remove_user(request):
     except:
         return error_response()
 
+@csrf_exempt
 def login(request):
-    id = request.GET.get('id', '')
-    pw = request.GET.get('pw', '')
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
     if User.objects.all().filter(username=id, password=pw).count() == 0:
-        return JsonResponse({}, status=401)
+        return error_response()
 
     query_set = User.objects.all().filter(username=id)
     cnt = query_set.count()
-
-    if cnt > 0:
-        if cnt > 1:
-            return JsonResponse({}, status=402)
-        user = query_set[0]
-        profile = Profile.objects.all().filter(user=user)[0]
-        profile_serializer = ProfileSerializer(profile, context={'request': request})
-        return JsonResponse(profile_serializer.data, status=200)
-    else:
-        return JsonResponse({}, status=403)
-
+    try:
+        if cnt > 0:
+            if cnt > 1:
+                return error_response()
+            user = query_set[0]
+            profile = Profile.objects.all().filter(user=user)[0]
+            profile_serializer = ProfileSerializer(profile, context={'request': request})
+            return JsonResponse(profile_serializer.data, status=200)
+        else:
+            return error_response()
+    except:
+        return error_response()
 
 @csrf_exempt
 def change_profile_image(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
+
     query_set = User.objects.all().filter(username=id, password=pw)
     cnt = query_set.count()
 

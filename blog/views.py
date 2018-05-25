@@ -40,15 +40,18 @@ def delete_post(request):
 
 @csrf_exempt
 def get_posts(request):
-    last_post_id = request.POST.get('last_post_id', -1)
-    if not last_post_id:
-        last_post_id = -1
-    cnt_post = request.POST.get('cnt_post', 10)
-    if not cnt_post:
-        cnt_post = 10
-    post_query_set = Post.objects.all().order_by('-created_date')
-    if last_post_id != -1:
-        post_query_set = post_query_set.filter(id__gt=last_post_id)
-    posts = post_query_set[:cnt_post]
-    serializer = PostSerializer(posts, many=True, context={"request": request})
-    return JsonResponse(serializer.data, status=200, safe=False)
+    try:
+        last_post_id = request.GET.get('last_post_id', -1)
+        if not last_post_id:
+            last_post_id = -1
+        cnt_post = request.GET.get('cnt_post', 10)
+        if not cnt_post:
+            cnt_post = 10
+        post_query_set = Post.objects.all().order_by('-created_date')
+        if last_post_id != -1:
+            post_query_set = post_query_set.filter(id__gt=last_post_id)
+        posts = post_query_set[:cnt_post]
+        serializer = PostSerializer(posts, many=True, context={"request": request})
+        return JsonResponse(serializer.data, status=200, safe=False)
+    except:
+        return error_response()
