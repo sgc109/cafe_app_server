@@ -33,7 +33,8 @@ def delete_post(request):
     post_id = request.POST.get('post_id', 0)
     try:
         user = User.objects.all().filter(username=id, password=pw)[0]
-        post = Post.objects.all().filter(id=post_id, user=user)
+        profile = Profile.objects.all().filter(user=user)
+        post = Post.objects.all().filter(id=post_id, profile=profile)
         post.delete()
         return success_response()
     except:
