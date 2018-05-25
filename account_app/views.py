@@ -20,7 +20,7 @@ def add_user(request):
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
-        profile = Profile(user=new_user, name='', profile_image='', comment='')
+        profile = Profile(user=new_user, name='', profile_image='default.png', comment='')
         profile.save()
     except IntegrityError as e:
         return error_response()
@@ -62,7 +62,7 @@ def login(request):
         return JsonResponse(profile_serializer.data, status=200)
     else:
         return JsonResponse({}, status=403)
-    
+
 
 @csrf_exempt
 def change_profile_image(request):
