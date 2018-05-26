@@ -2,3 +2,4 @@ Pillow
 django==1.10
 djangorestframework
 djangorestframework-jwt
+pyfcm

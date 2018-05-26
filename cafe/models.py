@@ -17,6 +17,7 @@ class Profile(models.Model):
     comment = models.CharField(max_length=100, blank=True, null=True)
     type = models.IntegerField(default=0)
     point = models.IntegerField(default=0)
+    fcm_token = models.CharField(max_length=1000, blank=True, null=True)
     # birth = models.DateTimeField()
     def __str__(self):
         return 'profile of ' + self.user.username

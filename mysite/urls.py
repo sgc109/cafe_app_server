@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^get_waiting_time/', cafe.views.get_waiting_time, name = 'get_waiting_time'),
     url(r'^get_orders/', cafe.views.get_orders, name = 'get_orders'),
     url(r'^get_order_by_id/', cafe.views.get_order_by_id, name = 'get_order_by_id'),
+    url(r'^change_order_state/', cafe.views.change_order_state, name = 'change_order_state'),
     # url(r'^upload_post/', blog.views.upload_post, name = 'upload_post'),
     # url(r'^delete_post/', blog.views.delete_post, name = 'delete_post'),
     # url(r'^get_posts/', blog.views.get_posts, name = 'get_posts'),

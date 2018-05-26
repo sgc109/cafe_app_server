@@ -397,8 +397,8 @@ def create_order(request):
 
 @csrf_exempt
 def get_orders(request):
-    id = request.POST.get('id')
-    pw = request.POST.get('pw')
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
     state = request.POST.get('state', '')
     year = request.POST.get('year', '')
     month = request.POST.get('month', '')
@@ -409,14 +409,14 @@ def get_orders(request):
     profile = Profile.objects.all().filter(user=user)[0]
     query_set = Order.objects.all()
     if state != 2:
-        query_set = query_set.filter(status=status)
+        query_set = query_set.filter(state=state)
     if profile.type == 0:
         query_set = query_set.filter(profile=profile)
     if year:
         query_set = query_set.filter(date__year=int(year))
     if month:
         query_set = query_set.filter(date__year=int(month))
-
+    query_set = query_set.order_by('state', 'date')
     serial = OrderSerializer(query_set, many=True)
     return JsonResponse(serial.data, status=200, safe=False)
 
@@ -434,6 +434,29 @@ def get_order_by_id(request):
     serial = OrderItemSerializer(items, many=True)
     return JsonResponse(serial.data, safe=False)
 
+@csrf_exempt
+def change_order_state(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    order_id  = request.POST.get('order_id', '')
+    order = Order.objects.all().filter(id=order_id)[0]
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    order.state = 1
+    order.save()
+
+    # api_key = 'BIER4EPJ-ogWuxLikMThyYwsBXMT3KwDO5b_vUjl0EZFroJgvtfYRpCQFRAC7GxyGSnS0W6-vsodxblz7NoHtmE'
+    # push_service = FCMNotification(api_key=api_key)
+    # token = order.profile.fcm_token
+    # registration_id = fcm_token
+    # message_title = 'title'
+    # message_body = 'body''
+    # result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
+
+    return success_response()
 
 def get_waiting_time(request):
     waiting_time = WaitingTime.objects.all()[0]
