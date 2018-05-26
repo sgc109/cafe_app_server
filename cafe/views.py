@@ -9,11 +9,6 @@ from django.core import serializers
 from django.forms import ModelForm
 import json
 
-class ProfileForm(ModelForm):
-    class Meta:
-        model = Profile
-        fields = []
-
 def error_response():
     return JsonResponse({},status=400)
 
@@ -94,15 +89,10 @@ def edit_user(request):
     comment = request.POST.get('comment', '')
     user = User.objects.all().filter(username=id, password=pw)[0]
     profile = Profile.objects.all().filter(user=user)[0]
-    new_profile = Profile(user=profile.user, name=name, profile_image=image, comment=comment, )
-    form = ProfileForm(instance=new_profile)
-    edit = form.save(commit=False)
-    edit.save()
     if name:
         profile.name = name
     if image:
-        # profile.set_image(image)
-        profile.image = image
+        profile.profile_image = image
     if comment:
         profile.comment = comment
     profile.save()
@@ -127,8 +117,7 @@ def edit_user_by_id(request):
     if name:
         profile.name = name
     if image:
-        # profile.set_image(image)
-        profile.image = image
+        profile.profile_image = image
     if comment:
         profile.comment = comment
     profile.save()
@@ -389,7 +378,7 @@ def create_order(request):
         price = int(menu.price)
         price_sum += price * cnt
         time_sum += int(menu.taking_time) * cnt
-        # order_item = OrderItem(order_id=)
+        
     order = Order(profile=profile, comment=comment, taking_time=time_sum, price=price_sum)
     waiting_time = WaitingTime.objects.all()[0]
     waiting_time.value += time_sum

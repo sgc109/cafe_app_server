@@ -12,9 +12,9 @@ def get_file_path(instance, filename):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    name = models.CharField(max_length=20, blank=True)
+    name = models.CharField(max_length=20, blank=True, null=True)
     profile_image = models.ImageField(upload_to=get_file_path, blank=True, null=True)
-    comment = models.CharField(max_length=100, blank=True)
+    comment = models.CharField(max_length=100, blank=True, null=True)
     type = models.IntegerField(default=0)
     point = models.IntegerField(default=0)
     # birth = models.DateTimeField()
