@@ -10,22 +10,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         exclude = ('user', )
 
-class ProfileImageSerializer(serializers.ModelSerializer):
-    photo_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Profile
-        fields = ('photo_url', )
-
-class ProfileNameSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ('name', )
-
-class ProfileCommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ('comment', )
+# class ProfileImageSerializer(serializers.ModelSerializer):
+#     photo_url = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = Profile
+#         fields = ('photo_url', )
+#
+# class ProfileNameSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Profile
+#         fields = ('name', )
+#
+# class ProfileCommentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Profile
+#         fields = ('comment', )
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,6 +36,7 @@ class MenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
         exclude = ()
+
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem

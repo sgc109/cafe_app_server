@@ -38,12 +38,13 @@ def login(request):
 def add_user(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
+    name = request.POST.get('name', '')
     if not id or not pw:
         return error_response()
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
-        profile = Profile(user=new_user, name='', profile_image='default_profile_image.png', comment='')
+        profile = Profile(user=new_user, name=name, profile_image='default_profile_image.png', comment='')
         profile.save()
     except IntegrityError as e:
         return error_response()
@@ -68,17 +69,32 @@ def remove_user(request):
 def remove_user_by_id(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
-    uid = request.POST.get('uid', 0)
+    uid = int(request.POST.get('uid'))
     user = User.objects.all().filter(username=id, password=pw)[0]
     profile = Profile.objects.all().filter(user=user)[0]
     if profile.type == 0:
         return JsonResponse({}, status=401)
-    if uid:
-        uid = int(uid)
     query_set = User.objects.all().filter(id=uid)
     query_set.delete()
     return success_response()
 
+@csrf_exempt
+def edit_user(request):
+    pass
+
+@csrf_exempt
+def edit_user_by_id(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    uid = int(request.POST.get('uid'))
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    user = User.objects.all().filter(id=uid)[0]
+    # profile = Profile.objects.all().filter(id=)
+
+    return success_response()
 
 @csrf_exempt
 def change_profile_image(request):
@@ -268,7 +284,6 @@ def create_menu(request):
 def delete_menu(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
-    arr = request.POST.get('item_list')
     user = User.objects.all().filter(username=id, password=pw)[0]
     profile = Profile.objects.all().filter(user=user)[0]
     if profile.type == 0:
@@ -279,6 +294,36 @@ def delete_menu(request):
     query_set = Menu.objects.all().filter(id=menu_id)[0]
     query_set.delete()
     return success_response()
+
+@csrf_exempt
+def edit_menu(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    category_id  = request.POST.get('category_id', '')
+    price = int(request.POST.get('price', ''))
+    name = request.POST.get('name', '')
+    image = request.FILES.get('image', '')
+    taking_time = int(request.POST.get('taking_time', ''))
+    menu_id = request.POST.get('menu_id', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    menu = Menu.objects.all().filter(id=menu_id)[0]
+    type = Category.objects.all().filter(id=category_id)[0]
+
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+
+    if not image:
+        image = 'default_coffee.png'
+
+    menu.type = type
+    menu.price = price
+    menu.name = name
+    menu.image = image
+    menu.taking_time = taking_time
+    menu.save()
+    serial = MenuSerializer(menu)
+    return JsonResponse(serial.data, status=200)
 
 def get_menus(request):
     menus = Menu.objects.all()
@@ -358,6 +403,21 @@ def get_orders(request):
 
     serial = OrderSerializer(query_set, many=True)
     return JsonResponse(serial.data, status=200, safe=False)
+
+@csrf_exempt
+def get_order_by_id(request):
+    id = request.POST.get('id')
+    pw = request.POST.get('pw')
+    order_id = request.POST.get('order_id')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)
+    order = Order.objects.all().filter(id=order_id)
+    if profile.type == 0 and profile.user.id != order.profile.user.id:
+        return error_response()
+    items = OrderItem.objects.all().filter(order=order)
+    serial = OrderItemSerializer(items, many=True)
+    return JsonResponse(serial.data, safe=False)
+
 
 def get_waiting_time(request):
     waiting_time = WaitingTime.objects.all()[0]
