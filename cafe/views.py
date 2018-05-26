@@ -87,14 +87,21 @@ def edit_user_by_id(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
     uid = int(request.POST.get('uid'))
+    name = request.POST.get('name', '')
+    image = request.FILES.get('image', '')
+    comment = request.POST.get('comment', '')
     user = User.objects.all().filter(username=id, password=pw)[0]
     profile = Profile.objects.all().filter(user=user)[0]
     if profile.type == 0:
         return JsonResponse({}, status=401)
     user = User.objects.all().filter(id=uid)[0]
-    # profile = Profile.objects.all().filter(id=)
-
-    return success_response()
+    profile = Profile.objects.all().filter(user=user)[0]
+    profile.name = name
+    profile.image = image
+    profile.comment = comment
+    profile.save()
+    serial = ProfileSerializer(profile)
+    return JsonResponse(serial.data, status=200)
 
 @csrf_exempt
 def change_profile_image(request):
