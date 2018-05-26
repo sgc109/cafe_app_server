@@ -1,12 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from cafe.serializer import *
-from .models import Profile
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', )
+from .models import *
 
 class ProfileSerializer(serializers.ModelSerializer):
     photo_url = serializers.SerializerMethodField()
@@ -14,7 +9,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('name', 'photo_url', 'comment', 'uid')
+        fields = ('uid', 'name', 'photo_url', 'comment', 'type', 'point')
 
     def get_photo_url(self, profile):
         request = self.context.get('request')
@@ -41,3 +36,27 @@ class ProfileCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ('comment', )
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'name')
+
+class MenuSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Menu
+        exclude = ()
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        exclude = ()
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', )
+
+class OrderSerializer(serializers.ModelSerializer):
+    menus = MenuSerializer(many=True)
+    class Meta:
+        model = Order

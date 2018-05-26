@@ -1,15 +1,39 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.contrib.auth.models import User
+from django.http import *
 from .models import *
 from .serializer import *
+from django.contrib.auth.models import *
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
+from django.db import IntegrityError
+from django.core import serializers
 
 def error_response():
     return JsonResponse({},status=400)
 
 def success_response():
     return JsonResponse({},status=200)
+
+@csrf_exempt
+def login(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    if User.objects.all().filter(username=id, password=pw).count() == 0:
+        return error_response()
+
+    query_set = User.objects.all().filter(username=id)
+    cnt = query_set.count()
+    try:
+        if cnt > 0:
+            if cnt > 1:
+                return error_response()
+            user = query_set[0]
+            profile = Profile.objects.all().filter(user=user)[0]
+            profile_serializer = ProfileSerializer(profile, context={'request': request})
+            return JsonResponse(profile_serializer.data, status=200)
+        else:
+            return error_response()
+    except:
+        return error_response()
 
 @csrf_exempt
 def add_user(request):
@@ -33,39 +57,29 @@ def remove_user(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
     query_set = User.objects.all().filter(username=id, password=pw)
-    cnt = query_set.count()
+    user = query_set[0]
+    profile = Profile.objects.all().filter(user=user)
     try:
-        if cnt > 0:
-            if cnt > 1:
-                return error_response()
-            query_set.delete()
-            return success_response()
-        else:
-            return error_response()
+        query_set.delete()
+        return success_response()
+
     except:
         return error_response()
 
 @csrf_exempt
-def login(request):
+def remove_user_by_id(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
-    if User.objects.all().filter(username=id, password=pw).count() == 0:
-        return error_response()
-
-    query_set = User.objects.all().filter(username=id)
-    cnt = query_set.count()
-    try:
-        if cnt > 0:
-            if cnt > 1:
-                return error_response()
-            user = query_set[0]
-            profile = Profile.objects.all().filter(user=user)[0]
-            profile_serializer = ProfileSerializer(profile, context={'request': request})
-            return JsonResponse(profile_serializer.data, status=200)
-        else:
-            return error_response()
-    except:
-        return error_response()
+    uid = request.POST.get('uid', 0)
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    if uid:
+        uid = int(uid)
+    query_set = User.objects.all().filter(id=uid)
+    query_set.delete()
+    return success_response()
 
 
 @csrf_exempt
@@ -184,3 +198,141 @@ def get_posts(request):
     posts = post_query_set[:cnt_post]
     serializer = PostSerializer(posts, many=True, context={"request": request})
     return JsonResponse(serializer.data, status=200, safe=False)
+
+@csrf_exempt
+def get_profiles(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    profiles = Profile.objects.all()
+    serial = ProfileSerializer(profiles, many=True, context={'request': request})
+    return JsonResponse(serial.data, status=200, safe=False)
+
+@csrf_exempt
+def create_category(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    name = request.POST.get('name')
+    category = Category(name=name)
+    category.save()
+    serial = CategorySerializer(category)
+    return JsonResponse(serial.data, status=200)
+
+@csrf_exempt
+def delete_category(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    category_id = request.POST.get('category_id', '')
+    if category_id:
+        category_id = int(category_id)
+    query_set = Category.objects.all().filter(id=category_id)
+    query_set.delete()
+    return success_response()
+
+def get_categories(request):
+    categories = Category.objects.all()
+    serial = CategorySerializer(categories, many=True)
+    return JsonResponse(serial.data, status=200, safe=False)
+
+@csrf_exempt
+def create_menu(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+
+    category_id = int(request.POST.get('category_id'))
+    type = Category.objects.all().filter(id=category_id)[0]
+    name = request.POST.get('name')
+    price = int(request.POST.get('price'))
+    image = request.FILES['image']
+    taking_time = int(request.POST.get('taking_time'))
+    menu = Menu(type=type, name=name, price=price, image=image, taking_time=taking_time)
+    menu.save()
+    serial = MenuSerializer(menu)
+
+    return JsonResponse(serial.data, status=200)
+
+@csrf_exempt
+def delete_menu(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    arr = request.POST.get('item_list')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    if profile.type == 0:
+        return JsonResponse({}, status=401)
+    menu_id = request.POST.get('menu_id', '')
+    if menu_id:
+        menu_id = int(menu_id)
+    query_set = Menu.objects.all().filter(id=menu_id)[0]
+    query_set.delete()
+    return success_response()
+
+def get_menus(request):
+    menus = Menu.objects.all()
+    serial = MenuSerializer(menus, many=True)
+    return JsonResponse(serial.data, status=200, safe=False)
+
+@csrf_exempt
+def make_order(request):
+    data = {
+        'comment': '',
+        'id': '1',
+        'pw': '1',
+        'item_list': [
+            {
+                'menu_id': 10,
+                'cnt': 2,
+            },
+        ],
+    }
+    id = data.get('id')
+    pw = data.get('pw')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+
+    comment = data.get('comment')
+    item_list = data.get('item_list')
+    price_sum = 0
+    time_sum = 0
+
+    for item in item_list:
+        menu_id = item.get('menu_id')
+        cnt = item.get('cnt')
+        menu = Menu.objects.all().filter(id=menu_id)[0]
+        price = menu.price
+        price_sum += price * cnt
+        time_sum += menu.taking_time * cnt
+        # order_item = OrderItem(order_id=)
+    order = Order(profile=profile, comment=comment, taking_time=time_sum, price=price_sum)
+    waiting_time = WaitingTime.objects.all()[0]
+    waiting_time.value += time_sum
+    waiting_time.save()
+    order.save()
+
+    for item in item_list:
+        menu_id = item.get('menu_id')
+        menu = Menu.objects.get(id=menu_id)
+        cnt = item.get('cnt')
+        order_item = OrderItem(order=order, menu=menu, cnt=cnt)
+        order_item.save()
+
+    return JsonResponse({'test': price_sum}, status=200)
+
+def get_waiting_time(request):
+    waiting_time = WaitingTime.objects.all()[0]
+    return JsonResponse({'waiting_time': waiting_time.value}, status=200)
