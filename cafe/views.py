@@ -341,13 +341,11 @@ def edit_menu(request):
     if profile.type == 0:
         return JsonResponse({}, status=401)
 
-    if not image:
-        image = 'default_coffee.png'
-
     menu.type = type
     menu.price = price
     menu.name = name
-    menu.image = image
+    if image:
+        menu.image = image
     menu.taking_time = taking_time
     menu.save()
     serial = MenuSerializer(menu)
@@ -378,7 +376,7 @@ def create_order(request):
         price = int(menu.price)
         price_sum += price * cnt
         time_sum += int(menu.taking_time) * cnt
-        
+
     order = Order(profile=profile, comment=comment, taking_time=time_sum, price=price_sum)
     waiting_time = WaitingTime.objects.all()[0]
     waiting_time.value += time_sum
