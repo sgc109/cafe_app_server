@@ -6,6 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.db import IntegrityError
 from django.core import serializers
+from django.forms import ModelForm
+import json
+
+class ProfileForm(ModelForm):
+    class Meta:
+        model = Profile
+        fields = []
 
 def error_response():
     return JsonResponse({},status=400)
@@ -80,7 +87,27 @@ def remove_user_by_id(request):
 
 @csrf_exempt
 def edit_user(request):
-    pass
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    name = request.POST.get('name', '')
+    image = request.FILES.get('image', '')
+    comment = request.POST.get('comment', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    new_profile = Profile(user=profile.user, name=name, profile_image=image, comment=comment, )
+    form = ProfileForm(instance=new_profile)
+    edit = form.save(commit=False)
+    edit.save()
+    if name:
+        profile.name = name
+    if image:
+        # profile.set_image(image)
+        profile.image = image
+    if comment:
+        profile.comment = comment
+    profile.save()
+    serial = ProfileSerializer(profile)
+    return JsonResponse(serial.data, status=200)
 
 @csrf_exempt
 def edit_user_by_id(request):
@@ -90,15 +117,20 @@ def edit_user_by_id(request):
     name = request.POST.get('name', '')
     image = request.FILES.get('image', '')
     comment = request.POST.get('comment', '')
-    user = User.objects.all().filter(username=id, password=pw)[0]
-    profile = Profile.objects.all().filter(user=user)[0]
-    if profile.type == 0:
+    admin_user = User.objects.all().filter(username=id, password=pw)[0]
+    admin_profile = Profile.objects.all().filter(user=admin_user)[0]
+    if admin_profile.type == 0:
         return JsonResponse({}, status=401)
     user = User.objects.all().filter(id=uid)[0]
     profile = Profile.objects.all().filter(user=user)[0]
-    profile.name = name
-    profile.image = image
-    profile.comment = comment
+
+    if name:
+        profile.name = name
+    if image:
+        # profile.set_image(image)
+        profile.image = image
+    if comment:
+        profile.comment = comment
     profile.save()
     serial = ProfileSerializer(profile)
     return JsonResponse(serial.data, status=200)
@@ -338,22 +370,8 @@ def get_menus(request):
     return JsonResponse(serial.data, status=200, safe=False)
 
 @csrf_exempt
-def make_order(request):
-    data = {
-        'comment': '',
-        'id': '1',
-        'pw': '1',
-        'item_list': [
-            {
-                'menu_id': 16,
-                'cnt': 2,
-            },
-            {
-                'menu_id': 16,
-                'cnt': 2,
-            },
-        ],
-    }
+def create_order(request):
+    data = json.loads( request.body.decode('utf-8'))
     id = data.get('id')
     pw = data.get('pw')
     user = User.objects.all().filter(username=id, password=pw)[0]
