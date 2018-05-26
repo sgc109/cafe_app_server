@@ -338,7 +338,11 @@ def make_order(request):
         'pw': '1',
         'item_list': [
             {
-                'menu_id': 10,
+                'menu_id': 16,
+                'cnt': 2,
+            },
+            {
+                'menu_id': 16,
                 'cnt': 2,
             },
         ],
@@ -410,8 +414,8 @@ def get_order_by_id(request):
     pw = request.POST.get('pw')
     order_id = request.POST.get('order_id')
     user = User.objects.all().filter(username=id, password=pw)[0]
-    profile = Profile.objects.all().filter(user=user)
-    order = Order.objects.all().filter(id=order_id)
+    profile = Profile.objects.all().filter(user=user)[0]
+    order = Order.objects.all().filter(id=order_id)[0]
     if profile.type == 0 and profile.user.id != order.profile.user.id:
         return error_response()
     items = OrderItem.objects.all().filter(order=order)

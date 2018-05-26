@@ -38,6 +38,7 @@ class MenuSerializer(serializers.ModelSerializer):
         exclude = ()
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    menu = MenuSerializer()
     class Meta:
         model = OrderItem
         exclude = ()
