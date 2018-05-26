@@ -22,18 +22,17 @@ def login(request):
 
     query_set = User.objects.all().filter(username=id)
     cnt = query_set.count()
-    try:
-        if cnt > 0:
-            if cnt > 1:
-                return error_response()
-            user = query_set[0]
-            profile = Profile.objects.all().filter(user=user)[0]
-            profile_serializer = ProfileSerializer(profile, context={'request': request})
-            return JsonResponse(profile_serializer.data, status=200)
-        else:
+
+    if cnt > 0:
+        if cnt > 1:
             return error_response()
-    except:
+        user = query_set[0]
+        profile = Profile.objects.all().filter(user=user)[0]
+        profile_serializer = ProfileSerializer(profile)
+        return JsonResponse(profile_serializer.data, status=200)
+    else:
         return error_response()
+
 
 @csrf_exempt
 def add_user(request):
@@ -44,11 +43,10 @@ def add_user(request):
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
-        profile = Profile(user=new_user, name='', profile_image='default.png', comment='')
+        profile = Profile(user=new_user, name='', profile_image='default_profile_image.png', comment='')
         profile.save()
     except IntegrityError as e:
         return error_response()
-        #return HttpResponse(e.__cause__)
 
     return success_response()
 
@@ -101,7 +99,7 @@ def change_profile_image(request):
                 prv_photo.delete()
             profile.profile_image = request.FILES['photo']
             profile.save()
-            serializer = ProfileImageSerializer(profile, context={'request': request})
+            serializer = ProfileImageSerializer(profile)
             return JsonResponse(serializer.data, status=200)
         else:
             return error_response()
@@ -196,7 +194,7 @@ def get_posts(request):
     if last_post_id != -1:
         post_query_set = post_query_set.filter(id__lt=last_post_id)
     posts = post_query_set[:cnt_post]
-    serializer = PostSerializer(posts, many=True, context={"request": request})
+    serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, status=200, safe=False)
 
 @csrf_exempt
@@ -208,7 +206,7 @@ def get_profiles(request):
     if profile.type == 0:
         return JsonResponse({}, status=401)
     profiles = Profile.objects.all()
-    serial = ProfileSerializer(profiles, many=True, context={'request': request})
+    serial = ProfileSerializer(profiles, many=True)
     return JsonResponse(serial.data, status=200, safe=False)
 
 @csrf_exempt
@@ -234,8 +232,6 @@ def delete_category(request):
     if profile.type == 0:
         return JsonResponse({}, status=401)
     category_id = request.POST.get('category_id', '')
-    if category_id:
-        category_id = int(category_id)
     query_set = Category.objects.all().filter(id=category_id)
     query_set.delete()
     return success_response()
@@ -254,11 +250,13 @@ def create_menu(request):
     if profile.type == 0:
         return JsonResponse({}, status=401)
 
-    category_id = int(request.POST.get('category_id'))
+    category_id = request.POST.get('category_id', '')
     type = Category.objects.all().filter(id=category_id)[0]
     name = request.POST.get('name')
     price = int(request.POST.get('price'))
     image = request.FILES['image']
+    if not image:
+        image = 'default_coffee.png'
     taking_time = int(request.POST.get('taking_time'))
     menu = Menu(type=type, name=name, price=price, image=image, taking_time=taking_time)
     menu.save()
@@ -312,11 +310,11 @@ def make_order(request):
 
     for item in item_list:
         menu_id = item.get('menu_id')
-        cnt = item.get('cnt')
+        cnt = int(item.get('cnt'))
         menu = Menu.objects.all().filter(id=menu_id)[0]
-        price = menu.price
+        price = int(menu.price)
         price_sum += price * cnt
-        time_sum += menu.taking_time * cnt
+        time_sum += int(menu.taking_time) * cnt
         # order_item = OrderItem(order_id=)
     order = Order(profile=profile, comment=comment, taking_time=time_sum, price=price_sum)
     waiting_time = WaitingTime.objects.all()[0]
@@ -324,14 +322,42 @@ def make_order(request):
     waiting_time.save()
     order.save()
 
+    profile.point += int(price_sum * 0.01)
+    profile.save()
+
     for item in item_list:
         menu_id = item.get('menu_id')
         menu = Menu.objects.get(id=menu_id)
-        cnt = item.get('cnt')
+        cnt = int(item.get('cnt'))
         order_item = OrderItem(order=order, menu=menu, cnt=cnt)
         order_item.save()
 
     return JsonResponse({'test': price_sum}, status=200)
+
+@csrf_exempt
+def get_orders(request):
+    id = request.POST.get('id')
+    pw = request.POST.get('pw')
+    state = request.POST.get('state', '')
+    year = request.POST.get('year', '')
+    month = request.POST.get('month', '')
+
+    if state:
+        state = int(state)
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+    query_set = Order.objects.all()
+    if state != 2:
+        query_set = query_set.filter(status=status)
+    if profile.type == 0:
+        query_set = query_set.filter(profile=profile)
+    if year:
+        query_set = query_set.filter(date__year=int(year))
+    if month:
+        query_set = query_set.filter(date__year=int(month))
+
+    serial = OrderSerializer(query_set, many=True)
+    return JsonResponse(serial.data, status=200, safe=False)
 
 def get_waiting_time(request):
     waiting_time = WaitingTime.objects.all()[0]

@@ -14,11 +14,12 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     name = models.CharField(max_length=20, blank=True)
     profile_image = models.ImageField(upload_to=get_file_path, blank=True, null=True)
+    comment = models.CharField(max_length=100, blank=True)
     type = models.IntegerField(default=0)
     point = models.IntegerField(default=0)
     # birth = models.DateTimeField()
-    comment = models.CharField(max_length=100, blank=True)
-
+    def __str__(self):
+        return 'profile of ' + self.user.username
     def alias_user(self):
         return self.user.id
 
