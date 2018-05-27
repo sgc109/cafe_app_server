@@ -58,9 +58,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return 'item ' + '{}'.format(self.id)
-
-class WaitingTime(models.Model):
-    value = models.PositiveIntegerField()
-
-    def __str__(self):
-        return '{}'.format(self.value)

@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.db import IntegrityError
 from django.core import serializers
 from django.forms import ModelForm
+from pyfcm import FCMNotification
 import json
 
 def error_response():
@@ -41,12 +42,13 @@ def add_user(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
     name = request.POST.get('name', '')
+    fcm_token = request.POST.get('fcm_token', '')
     if not id or not pw:
         return error_response()
     new_user = User(username=id, password=pw)
     try:
         new_user.save()
-        profile = Profile(user=new_user, name=name, profile_image='default_profile_image.png', comment='')
+        profile = Profile(user=new_user, name=name, profile_image='default_profile_image.png', comment='', fcm_token=fcm_token)
         profile.save()
     except IntegrityError as e:
         return error_response()
@@ -359,8 +361,8 @@ def get_menus(request):
 @csrf_exempt
 def create_order(request):
     data = json.loads( request.body.decode('utf-8'))
-    id = data.get('id')
-    pw = data.get('pw')
+    id = data.get('id', '')
+    pw = data.get('pw', '')
     user = User.objects.all().filter(username=id, password=pw)[0]
     profile = Profile.objects.all().filter(user=user)[0]
 
@@ -378,9 +380,6 @@ def create_order(request):
         time_sum += int(menu.taking_time) * cnt
 
     order = Order(profile=profile, comment=comment, taking_time=time_sum, price=price_sum)
-    waiting_time = WaitingTime.objects.all()[0]
-    waiting_time.value += time_sum
-    waiting_time.save()
     order.save()
 
     profile.point += int(price_sum * 0.01)
@@ -399,12 +398,10 @@ def create_order(request):
 def get_orders(request):
     id = request.POST.get('id', '')
     pw = request.POST.get('pw', '')
-    state = request.POST.get('state', '')
+    state = int(request.POST.get('state', 2))
     year = request.POST.get('year', '')
     month = request.POST.get('month', '')
 
-    if state:
-        state = int(state)
     user = User.objects.all().filter(username=id, password=pw)[0]
     profile = Profile.objects.all().filter(user=user)[0]
     query_set = Order.objects.all()
@@ -415,7 +412,7 @@ def get_orders(request):
     if year:
         query_set = query_set.filter(date__year=int(year))
     if month:
-        query_set = query_set.filter(date__year=int(month))
+        query_set = query_set.filter(date__month=int(month))
     query_set = query_set.order_by('state', 'date')
     serial = OrderSerializer(query_set, many=True)
     return JsonResponse(serial.data, status=200, safe=False)
@@ -448,16 +445,37 @@ def change_order_state(request):
     order.state = 1
     order.save()
 
-    # api_key = 'BIER4EPJ-ogWuxLikMThyYwsBXMT3KwDO5b_vUjl0EZFroJgvtfYRpCQFRAC7GxyGSnS0W6-vsodxblz7NoHtmE'
-    # push_service = FCMNotification(api_key=api_key)
-    # token = order.profile.fcm_token
-    # registration_id = fcm_token
-    # message_title = 'title'
-    # message_body = 'body''
-    # result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
+    api_key = 'AAAA3VWD52A:APA91bG9O59Tk9931Ty1WIz2uh6ZdVtSdVhJsKYPPaZubQyxxdPFcspmVlB6VkeyHHwASTiFQEuWWh45aYo_GGMk6cLRR7_FTxcaecSnEMf-EwAHKb_-8sO5xNu2i2PZkneRq0Ys2Hm1'
+    push_service = FCMNotification(api_key=api_key)
+    registration_id = profile.fcm_token
+    message_title = 'CAFE MIDAS'
+    message_body = '주문하신 제품이 준비되었습니다. 빨리 찾아가세요!'
+    result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
 
     return success_response()
 
 def get_waiting_time(request):
-    waiting_time = WaitingTime.objects.all()[0]
-    return JsonResponse({'waiting_time': waiting_time.value}, status=200)
+    query_set = Order.objects.all().filter(state=0)
+    ret = 0
+    for order in query_set:
+        ret += order.taking_time
+
+    return JsonResponse({'waiting_time': ret}, status=200)
+
+@csrf_exempt
+def test_fcm(request):
+    id = request.POST.get('id', '')
+    pw = request.POST.get('pw', '')
+    user = User.objects.all().filter(username=id, password=pw)[0]
+    profile = Profile.objects.all().filter(user=user)[0]
+
+    api_key = 'AAAA3VWD52A:APA91bG9O59Tk9931Ty1WIz2uh6ZdVtSdVhJsKYPPaZubQyxxdPFcspmVlB6VkeyHHwASTiFQEuWWh45aYo_GGMk6cLRR7_FTxcaecSnEMf-EwAHKb_-8sO5xNu2i2PZkneRq0Ys2Hm1'
+    push_service = FCMNotification(api_key=api_key)
+    registration_id = profile.fcm_token
+    message_title = 'title'
+    message_body = 'body'
+    result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
+    return success_response()
+
+def get_waiting_order(request):
+    return JsonResponse({'waiting_cnt': Order.objects.all().filter(state=0).count()}, status=200)
